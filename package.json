@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/junaidshahzad3/pk-pay.git"
+    "url": "git+https://github.com/junaidshahzad3/pk-pay.git"
   },
   "bugs": {
     "url": "https://github.com/junaidshahzad3/pk-pay/issues"
