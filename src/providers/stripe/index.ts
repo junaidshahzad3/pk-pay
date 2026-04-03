@@ -18,7 +18,6 @@ import {
   type ProviderAdapter,
   ProviderError,
   ConfigurationError,
-  ValidationError,
 } from '../../types/index.js';
 import { sanitizeRaw } from '../../utils/crypto.js';
 

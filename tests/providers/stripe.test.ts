@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StripeAdapter } from '../../src/providers/stripe/index.js';
 import type { StripeConfig, PaymentRequest } from '../../src/types/index.js';
-import { ConfigurationError, ProviderError, ValidationError } from '../../src/types/index.js';
+import { ConfigurationError, ProviderError } from '../../src/types/index.js';
 
 const MOCK_CONFIG: StripeConfig = {
   secretKey: 'sk_test_fakekeyfortesting1234567890',

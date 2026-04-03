@@ -70,7 +70,6 @@ describe('Dynamic Provider Registration', () => {
     // 4. Configure with custom provider settings
     configure({
       environment: 'sandbox',
-      // @ts-ignore - 'hbl' is not in the hardcoded PkPayConfig type but is allowed by .catchall()
       hbl: {
         apiKey: 'hbl-secret-key',
         merchantId: 'hbl-merch-1',
@@ -97,7 +96,6 @@ describe('Dynamic Provider Registration', () => {
 
     const client = new PkPayClient({
       environment: 'production',
-      // @ts-ignore
       ubl: { apiKey: 'ubl-secure-key' }
     });
 
