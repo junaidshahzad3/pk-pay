@@ -48,6 +48,7 @@ import {
   type WebhookEvent,
   type ProviderAdapter,
   type Provider,
+  PROVIDERS,
   PkPayConfigSchema,
   PaymentRequestSchema,
   ConfigurationError,
@@ -78,6 +79,30 @@ export {
 
 export { withRetry } from './utils/retry.js';
 export { generateIdempotencyKey, resolveIdempotencyKey } from './utils/idempotency.js';
+
+// ─── Provider Registry ────────────────────────────────────────────────────────
+/**
+ * Constructor type for provider adapters.
+ */
+export type AdapterConstructor = new (config: any) => ProviderAdapter;
+
+const providerRegistry = new Map<Provider, AdapterConstructor>();
+
+/**
+ * Register a new payment provider adapter.
+ * Allows extending the SDK with custom providers (e.g., HBL, UBL).
+ */
+export function registerProvider(
+  name: string,
+  adapter: AdapterConstructor,
+): void {
+  providerRegistry.set(name, adapter);
+}
+
+// Register default providers
+registerProvider(PROVIDERS.JAZZCASH, JazzCashAdapter as unknown as AdapterConstructor);
+registerProvider(PROVIDERS.EASYPAISA, EasyPaisaAdapter as unknown as AdapterConstructor);
+registerProvider(PROVIDERS.STRIPE, StripeAdapter as unknown as AdapterConstructor);
 
 // ─── Singleton State ──────────────────────────────────────────────────────────
 
@@ -118,50 +143,7 @@ function getAdapter(provider: Provider, config: PkPayConfigResolved): ProviderAd
     return adapterCache.get(provider)!;
   }
 
-  let adapter: ProviderAdapter;
-
-  switch (provider) {
-    case 'jazzcash': {
-      if (!config.jazzcash) {
-        throw new ConfigurationError(
-          'JazzCash config is required. Pass jazzcash: { merchantId, password, integritySalt } to configure().',
-          'jazzcash',
-        );
-      }
-      adapter = new JazzCashAdapter({
-        ...config.jazzcash,
-        environment: config.jazzcash.environment ?? config.environment,
-      });
-      break;
-    }
-    case 'easypaisa': {
-      if (!config.easypaisa) {
-        throw new ConfigurationError(
-          'EasyPaisa config is required. Pass easypaisa: { storeId, hashKey, username, password } to configure().',
-          'easypaisa',
-        );
-      }
-      adapter = new EasyPaisaAdapter({
-        ...config.easypaisa,
-        environment: config.easypaisa.environment ?? config.environment,
-      });
-      break;
-    }
-    case 'stripe': {
-      if (!config.stripe) {
-        throw new ConfigurationError(
-          'Stripe config is required. Pass stripe: { secretKey } to configure().',
-          'stripe',
-        );
-      }
-      adapter = new StripeAdapter({
-        ...config.stripe,
-        environment: config.stripe.environment ?? config.environment,
-      });
-      break;
-    }
-  }
-
+  const adapter = getAdapterForConfig(provider, config);
   adapterCache.set(provider, adapter);
   return adapter;
 }
@@ -289,20 +271,33 @@ export class PkPayClient {
 
 // Extracted so both global and class approach can reuse
 function getAdapterForConfig(provider: Provider, config: PkPayConfigResolved): ProviderAdapter {
-  switch (provider) {
-    case 'jazzcash': {
-      if (!config.jazzcash) throw new ConfigurationError('JazzCash config missing', 'jazzcash');
-      return new JazzCashAdapter({ ...config.jazzcash, environment: config.jazzcash.environment ?? config.environment });
-    }
-    case 'easypaisa': {
-      if (!config.easypaisa) throw new ConfigurationError('EasyPaisa config missing', 'easypaisa');
-      return new EasyPaisaAdapter({ ...config.easypaisa, environment: config.easypaisa.environment ?? config.environment });
-    }
-    case 'stripe': {
-      if (!config.stripe) throw new ConfigurationError('Stripe config missing', 'stripe');
-      return new StripeAdapter({ ...config.stripe, environment: config.stripe.environment ?? config.environment });
-    }
+  const Constructor = providerRegistry.get(provider);
+  
+  if (!Constructor) {
+    throw new ConfigurationError(
+      `No adapter registered for provider: ${provider}. Use registerProvider() to add it.`,
+      provider
+    );
   }
+
+  // Get specific config for this provider or fallback to dynamic catch-all config
+  const providerConfigs = config as any;
+  const specificConfig = providerConfigs[provider];
+
+  if (!specificConfig) {
+    throw new ConfigurationError(
+      `Configuration missing for provider: ${provider}.`,
+      provider
+    );
+  }
+
+  // Merge with top-level environment if provider-specific env is not set
+  const finalConfig = {
+    ...specificConfig,
+    environment: specificConfig.environment ?? config.environment,
+  };
+
+  return new Constructor(finalConfig);
 }
 
 async function executePaymentWithAdapters(

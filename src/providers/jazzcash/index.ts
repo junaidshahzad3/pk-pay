@@ -120,6 +120,13 @@ export class JazzCashAdapter implements ProviderAdapter {
       );
     }
 
+    if (request.currency !== 'PKR') {
+      throw new ValidationError(
+        `JazzCash only supports PKR currency. Received: ${request.currency}`,
+        'jazzcash',
+      );
+    }
+
     const now = new Date();
     const txnDateTime = formatJazzCashDateTime(now);
     const txnExpiryDateTime = formatExpiry(now);

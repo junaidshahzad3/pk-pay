@@ -38,9 +38,8 @@ describe('pk-pay Core (index.ts)', () => {
   });
 
   describe('configure()', () => {
-    it('throws ValidationError for invalid config', () => {
-      // @ts-expect-error - testing invalid environment value
-      expect(() => configure({ environment: 'invalid' })).toThrow(ValidationError);
+    it('accepts custom environment strings for future-proofing', () => {
+      expect(() => configure({ environment: 'staging' })).not.toThrow();
     });
 
     it('sets global configuration', () => {
@@ -142,9 +141,8 @@ describe('pk-pay Core (index.ts)', () => {
       expect(result.transactionId).toBe('st_123');
     });
 
-    it('throws ValidationError for invalid client config', () => {
-      // @ts-expect-error - testing invalid environment value for client
-      expect(() => createClient({ environment: 'invalid' })).toThrow(ValidationError);
+    it('accepts custom client environment strings', () => {
+      expect(() => createClient({ environment: 'local' })).not.toThrow();
     });
   });
 });

@@ -2,30 +2,52 @@ import { z } from 'zod';
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export const ProviderSchema = z.enum(['jazzcash', 'easypaisa', 'stripe']);
-export type Provider = z.infer<typeof ProviderSchema>;
+export const ProviderSchema = z.string().describe('Payment provider identifier');
+export type Provider = string;
+
+/** Standard provider identifiers for convenience */
+export const PROVIDERS = {
+  JAZZCASH: 'jazzcash',
+  EASYPAISA: 'easypaisa',
+  STRIPE: 'stripe',
+} as const;
 
 // ─── Environment ──────────────────────────────────────────────────────────────
 
-export const EnvironmentSchema = z.enum(['sandbox', 'production']);
-export type Environment = z.infer<typeof EnvironmentSchema>;
+export const EnvironmentSchema = z.string().describe('Deployment environment (e.g., sandbox, production)');
+export type Environment = string;
+
+/** Standard environment names */
+export const ENVIRONMENTS = {
+  SANDBOX: 'sandbox',
+  PRODUCTION: 'production',
+} as const;
 
 // ─── Currency ─────────────────────────────────────────────────────────────────
 
-export const CurrencySchema = z.enum(['PKR', 'USD', 'EUR', 'GBP']);
-export type Currency = z.infer<typeof CurrencySchema>;
+export const CurrencySchema = z.string().toUpperCase().length(3).describe('ISO 4217 3-letter currency code');
+export type Currency = string;
 
-// ─── Payment Status ───────────────────────────────────────────────────────────
+/** Common currency codes for convenience */
+export const CURRENCIES = {
+  PKR: 'PKR',
+  USD: 'USD',
+  EUR: 'EUR',
+  GBP: 'GBP',
+} as const;
 
-export const PaymentStatusSchema = z.enum([
-  'pending',
-  'processing',
-  'succeeded',
-  'failed',
-  'cancelled',
-  'refunded',
-]);
-export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
+export const PaymentStatusSchema = z.string().describe('Unified payment status');
+export type PaymentStatus = string;
+
+/** Common payment statuses for convenience */
+export const STATUSES = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SUCCEEDED: 'succeeded',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+} as const;
 
 // ─── Payment Request ──────────────────────────────────────────────────────────
 
@@ -128,7 +150,6 @@ export const StripeConfigSchema = z.object({
 export type StripeConfig = z.infer<typeof StripeConfigSchema>;
 
 // ─── Top-level SDK Config ─────────────────────────────────────────────────────
-
 export const PkPayConfigSchema = z.object({
   environment: EnvironmentSchema.default('sandbox'),
   jazzcash: JazzCashConfigSchema.optional(),
@@ -138,7 +159,7 @@ export const PkPayConfigSchema = z.object({
   maxRetries: z.number().int().min(0).max(5).default(3),
   /** Request timeout in milliseconds (default: 30000) */
   timeout: z.number().int().positive().default(30_000),
-});
+}).catchall(z.unknown());
 
 /** Input configuration passed by the user */
 export type PkPayConfig = z.input<typeof PkPayConfigSchema>;

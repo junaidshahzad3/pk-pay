@@ -21,39 +21,43 @@ export function safeCompare(received: string, expected: string): boolean {
 }
 
 /**
+ * Default list of sensitive keys that should be redacted from provider responses.
+ */
+export const DEFAULT_SENSITIVE_KEYS = [
+  'pp_Password',
+  'pp_SecureHash',
+  'merchantHashedReq',
+  'hashKey',
+  'integritySalt',
+  'password',
+  'secretKey',
+  'privateKey',
+  'webhookSecret',
+  'signature',
+  'hash',
+];
+
+/**
  * Recursively removes sensitive keys from an object before returning it 
  * to the user in the `raw` property.
  */
-export function sanitizeRaw<T>(data: T): T {
+export function sanitizeRaw<T>(data: T, extraSensitiveKeys: string[] = []): T {
   if (!data || typeof data !== 'object') {
     return data;
   }
 
   if (Array.isArray(data)) {
-    return data.map(sanitizeRaw) as unknown as T;
+    return data.map((item) => sanitizeRaw(item, extraSensitiveKeys)) as unknown as T;
   }
 
-  const sensitiveKeys = [
-    'pp_Password',
-    'pp_SecureHash',
-    'merchantHashedReq',
-    'hashKey',
-    'integritySalt',
-    'password',
-    'secretKey',
-    'privateKey',
-    'webhookSecret',
-    'signature',
-    'hash',
-  ];
-
+  const allSensitiveKeys = [...DEFAULT_SENSITIVE_KEYS, ...extraSensitiveKeys];
   const sanitized = { ...data } as Record<string, unknown>;
 
   for (const key of Object.keys(sanitized)) {
-    if (sensitiveKeys.includes(key)) {
+    if (allSensitiveKeys.includes(key)) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof sanitized[key] === 'object') {
-      sanitized[key] = sanitizeRaw(sanitized[key]);
+      sanitized[key] = sanitizeRaw(sanitized[key], extraSensitiveKeys);
     }
   }
 

@@ -82,7 +82,7 @@ Standard global payment processor. `pk-pay` uses **Stripe Checkout Sessions**.
 ```
 
 ### Key Considerations
-1. **Currency**: Stripe does not support `PKR` for standard checkout. You must use `USD`, `EUR`, or `GBP`.
+1. **Currency**: Stripe supports [135+ currencies](https://stripe.com/docs/currencies) (USD, EUR, GBP, etc.). Note: `PKR` is currently not supported for standard checkout sessions by Stripe.
 2. **Webhook Verification**: Ensure you pass the **exact raw request body** (as a Buffer or String) to the `verifyWebhook` function to avoid signature mismatches.
 
 ---
@@ -92,6 +92,7 @@ Standard global payment processor. `pk-pay` uses **Stripe Checkout Sessions**.
 | Feature | JazzCash | EasyPaisa | Stripe |
 | :--- | :--- | :--- | :--- |
 | **Smallest Unit** | Paisa | Paisa | Cent |
-| **PKR Support** | ✅ Yes | ✅ Yes | ❌ No |
+| **PKR Support** | ✅ Yes | ✅ Yes | ❌ No (use USD/EUR) |
+| **All ISO-3** | ❌ No | ❌ No | ✅ Yes |
 | **Redirection** | POST Form | POST or GET | GET (URL) |
 | **Hashing** | HMAC-SHA256 | RSA or HMAC | SHA256 (Stripe SDK) |

@@ -134,6 +134,16 @@ describe('JazzCashAdapter', () => {
         adapter.createPayment(invalidRequest, 'idem-invalid-amount'),
       ).rejects.toThrow('JazzCash amount must be a whole Rupee');
     });
+
+    it('throws ValidationError for non-PKR currencies', async () => {
+      const invalidRequest: PaymentRequest = {
+        ...BASE_REQUEST,
+        currency: 'USD',
+      };
+      await expect(
+        adapter.createPayment(invalidRequest, 'idem-invalid-currency'),
+      ).rejects.toThrow('JazzCash only supports PKR currency');
+    });
   });
 
   describe('verifyWebhook', () => {

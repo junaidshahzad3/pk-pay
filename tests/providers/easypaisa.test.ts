@@ -108,6 +108,16 @@ describe('EasyPaisaAdapter', () => {
       expect(result.redirectForm).toContain('user&quot;&#39;&lt;tag&gt;@example.com');
       expect(result.redirectForm).not.toContain('value=""><script>');
     });
+
+    it('throws ValidationError for non-PKR currencies', async () => {
+      const invalidRequest: PaymentRequest = {
+        ...BASE_REQUEST,
+        currency: 'USD',
+      };
+      await expect(
+        adapter.createPayment(invalidRequest, 'idem-invalid-currency'),
+      ).rejects.toThrow('EasyPaisa only supports PKR currency');
+    });
   });
 
   describe('verifyWebhook', () => {

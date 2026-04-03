@@ -5,8 +5,7 @@
  * unified interface. It creates a Stripe Checkout Session (hosted checkout),
  * which is the recommended integration for most use cases.
  *
- * PKR is not supported by this adapter. Callers must provide a Stripe-supported
- * currency such as USD, EUR, or GBP.
+ * Supports all [Stripe-supported currencies](https://stripe.com/docs/currencies).
  *
  * Docs: https://stripe.com/docs
  */
@@ -83,13 +82,6 @@ export class StripeAdapter implements ProviderAdapter {
     idempotencyKey: string,
   ): Promise<PaymentResult> {
     const stripe = await this.getStripeClient();
-
-    if (request.currency === 'PKR') {
-      throw new ValidationError(
-        'Stripe does not support PKR through pk-pay. Use a Stripe-supported currency such as USD, EUR, or GBP.',
-        'stripe',
-      );
-    }
 
     const currency = request.currency.toLowerCase();
 

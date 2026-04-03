@@ -27,7 +27,8 @@ npm install stripe
 import { configure } from 'pk-pay';
 
 configure({
-  environment: 'sandbox', // 'production' for live
+  environment: 'sandbox', // 'production', 'staging', or any custom string
+  maxRetries: 3,
   jazzcash: {
     merchantId: '...',
     password: '...',
@@ -36,7 +37,17 @@ configure({
   easypaisa: {
     method: 'rest', // or 'legacy'
     storeId: '...',
-    privateKey: '-----BEGIN PRIVATE KEY...-----',
+    username: '...',
+    password: '...',
+    privateKey: '...',
+  },
+  stripe: {
+    secretKey: '...',
+    webhookSecret: '...', // optional
+  },
+  // Custom provider configurations are also accepted!
+  custom_bank: {
+    apiKey: '...',
   }
 });
 ```
@@ -46,19 +57,18 @@ configure({
 import { createPayment } from 'pk-pay';
 
 const payment = await createPayment({
-  provider: 'jazzcash',
-  amount: 100_000,      // 1,000 PKR (in paisas)
-  currency: 'PKR',
-  description: 'Pro Subscription',
+  provider: 'stripe',   // Use any registered provider
+  amount: 2500,         // $25.00 in cents
+  currency: 'USD',      // Stripe supports 135+ currencies
+  description: 'International SaaS Pro Plan',
   returnUrl: 'https://yourapp.com/payment/callback',
-  customerPhone: '03001234567',
 });
 
 // Securely redirect:
 if (payment.redirectForm) {
-  res.send(payment.redirectForm);
+  res.send(payment.redirectForm); // For JazzCash/EasyPaisa POST forms
 } else {
-  res.redirect(payment.redirectUrl!);
+  res.redirect(payment.redirectUrl!); // For Stripe/Custom GET redirects
 }
 ```
 
@@ -79,10 +89,37 @@ Quick integration for **Express**, **Fastify**, and **Next.js**.
 
 ---
 
+## 🧩 Plugins & Custom Providers
+
+`pk-pay` is built on a dynamic registry. You can add support for any payment gateway without modifying the core library:
+
+```typescript
+import { registerProvider, configure, createPayment } from 'pk-pay';
+
+// 1. Implement your own provider adapter
+class MyBankAdapter {
+  constructor(private config: any) {}
+  async createPayment(req) { /* logic */ }
+  async verifyWebhook(payload, sig) { /* logic */ }
+}
+
+// 2. Register it
+registerProvider('my_bank', MyBankAdapter);
+
+// 3. Configure it
+configure({
+  my_bank: { apiKey: 'secret-key' }
+});
+
+// 4. Use it!
+await createPayment({ provider: 'my_bank', ... });
+```
+
 ## 🛡️ Security Features
 
 - ✅ **Timing-Safe** — All HMAC/RSA verifications are timing-attack resistant.
 - ✅ **Auto-Sanitized** — Raw provider responses automatically redact sensitive keys.
+- ✅ **Dynamic Redaction** — Extend redaction via `DEFAULT_SENSITIVE_KEYS`.
 - ✅ **Version Pinned** — Defaulting to the latest 2024/2025 API standards.
 
 ## 🤝 Contributing

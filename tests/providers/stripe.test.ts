@@ -118,10 +118,23 @@ describe('StripeAdapter', () => {
       expect(gbpArgs.line_items[0]?.price_data.unit_amount).toBe(5000);
     });
 
-    it('rejects PKR because Stripe is not safely supported for PKR', async () => {
-      await expect(
-        adapter.createPayment({ ...BASE_REQUEST, currency: 'PKR' }, 'idem-pkr'),
-      ).rejects.toThrow(ValidationError);
+    it('allows PKR (passes it to Stripe API directly)', async () => {
+      const mockStripe = await getMockStripe();
+      await adapter.createPayment({ ...BASE_REQUEST, currency: 'PKR' }, 'idem-pkr');
+      
+      const args = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as any;
+      expect(args.line_items[0]?.price_data.currency).toBe('pkr');
+    });
+
+    it('allows novel currencies like SAR or AED', async () => {
+      const mockStripe = await getMockStripe();
+      await adapter.createPayment({ ...BASE_REQUEST, currency: 'SAR' }, 'idem-sar');
+      const sarArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as any;
+      expect(sarArgs.line_items[0]?.price_data.currency).toBe('sar');
+
+      await adapter.createPayment({ ...BASE_REQUEST, currency: 'AED' }, 'idem-aed');
+      const aedArgs = mockStripe.checkout.sessions.create.mock.calls[1]?.[0] as any;
+      expect(aedArgs.line_items[0]?.price_data.currency).toBe('aed');
     });
 
     it('returns succeeded status when session status is complete', async () => {

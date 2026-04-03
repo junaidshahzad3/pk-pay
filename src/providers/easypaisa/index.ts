@@ -18,6 +18,7 @@ import {
   type ProviderAdapter,
   ProviderError,
   ConfigurationError,
+  ValidationError,
 } from '../../types/index.js';
 import { escapeHtmlAttribute, safeCompare, sanitizeRaw } from '../../utils/crypto.js';
 import { formatToPKT } from '../../utils/date.js';
@@ -114,6 +115,13 @@ export class EasyPaisaAdapter implements ProviderAdapter {
     if (!request.customerPhone) {
       throw new ConfigurationError(
         'customerPhone is required for EasyPaisa payments',
+        'easypaisa',
+      );
+    }
+
+    if (request.currency !== 'PKR') {
+      throw new ValidationError(
+        `EasyPaisa only supports PKR currency. Received: ${request.currency}`,
         'easypaisa',
       );
     }
