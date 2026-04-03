@@ -39,6 +39,8 @@ export function getIdempotencyHeader(provider: Provider): string {
       return 'X-JazzCash-Idempotency-Key';
     case 'easypaisa':
       return 'X-EasyPaisa-Idempotency-Key';
+    default:
+      return `X-${provider.charAt(0).toUpperCase() + provider.slice(1)}-Idempotency-Key`;
   }
 }
 
