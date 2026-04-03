@@ -11,12 +11,21 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "pk-pay": ["./src/index.ts"],
+      "pk-pay/middleware/express": ["./src/middleware/express/index.ts"],
+      "pk-pay/middleware/fastify": ["./src/middleware/fastify/index.ts"],
+      "pk-pay/middleware/nextjs": ["./src/middleware/nextjs/index.ts"]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "docs"]
+  "include": ["src/**/*", "tests/**/*", "docs/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

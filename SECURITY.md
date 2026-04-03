@@ -37,9 +37,18 @@ To protect your payment flows, `pk-pay` includes several built-in security featu
 
 1.  **Timing-Safe Comparisons**: All webhook signature verifications use timing-safe comparison logic to prevent brute-force timing attacks.
 2.  **Data Sanitization**: Provider-specific secrets (like `pp_Password` or `integritySalt`) are automatically masked in the `raw` property of results to prevent accidental leakage in logs.
-3.  **POST-based Redirects**: JazzCash and EasyPaisa redirects use auto-submit HTML forms to ensure sensitive data (like customer phone numbers) is sent via POST, keeping it out of browser history and server access logs.
-4.  **Zod Validation**: All inputs and provider responses are strictly validated at runtime to prevent malformed data injection.
+3.  **Escaped Redirect Forms**: JazzCash and EasyPaisa redirects use auto-submit HTML forms with HTML-escaped attribute values so merchant-supplied fields cannot inject markup into the rendered form.
+4.  **POST-based Redirects**: JazzCash and EasyPaisa redirects send sensitive data (like customer phone numbers) via POST, keeping it out of browser history and server access logs.
+5.  **Strict Stripe Webhooks**: Stripe webhook verification fails closed unless the exact raw request body is available.
+6.  **Zod Validation**: All inputs and provider responses are strictly validated at runtime to prevent malformed data injection.
+
+## Integration Notes
+
+- Stripe must use a Stripe-supported currency such as `USD`, `EUR`, or `GBP`; `PKR` is intentionally rejected.
+- Stripe receives provider-enforced idempotency keys. JazzCash and EasyPaisa currently reuse merchant reference values for merchant-side correlation.
+- JazzCash requires whole-rupee PKR amounts.
+- JazzCash and EasyPaisa require customer phone numbers.
 
 ---
 *For data processing details, please refer to [PRIVACY.md](PRIVACY.md).*
-*Last Updated: March 29, 2026*
+*Last Updated: March 30, 2026*

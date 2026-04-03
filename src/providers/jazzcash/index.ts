@@ -21,7 +21,7 @@ import {
   ConfigurationError,
   ValidationError,
 } from '../../types/index.js';
-import { safeCompare, sanitizeRaw } from '../../utils/crypto.js';
+import { escapeHtmlAttribute, safeCompare, sanitizeRaw } from '../../utils/crypto.js';
 import { formatToPKT } from '../../utils/date.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -30,6 +30,10 @@ const JAZZCASH_SANDBOX_URL =
   'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/';
 const JAZZCASH_PRODUCTION_URL =
   'https://jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/';
+
+function renderHiddenInput(name: string, value: string): string {
+  return `<input type="hidden" name="${escapeHtmlAttribute(name)}" value="${escapeHtmlAttribute(value)}" />`;
+}
 
 /**
  * JazzCash response codes mapping to unified PaymentStatus.
@@ -133,7 +137,7 @@ export class JazzCashAdapter implements ProviderAdapter {
     const amountInRupees = request.amount / 100;
 
     const params: Record<string, string> = {
-      pp_Version: '1.1',
+      pp_Version: this.config.version || '2.0',
       pp_TxnType: 'MWALLET',
       pp_Language: 'EN',
       pp_MerchantID: merchantId,
@@ -155,11 +159,11 @@ export class JazzCashAdapter implements ProviderAdapter {
 
     // Build auto-submit HTML form for secure POST redirect
     const formFields = Object.entries(params)
-      .map(([k, v]) => `<input type="hidden" name="${k}" value="${v}" />`)
+      .map(([k, v]) => renderHiddenInput(k, v))
       .join('\n      ');
 
     const redirectForm = `
-<form id="pk-pay-jazzcash-form" method="POST" action="${this.baseUrl}">
+<form id="pk-pay-jazzcash-form" method="POST" action="${escapeHtmlAttribute(this.baseUrl)}">
       ${formFields}
 </form>
 <script>document.getElementById("pk-pay-jazzcash-form").submit();</script>

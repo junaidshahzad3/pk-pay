@@ -49,4 +49,15 @@ The `pk-pay` SDK is a well-engineered, security-conscious library. It demonstrat
 The project is fit for production use once the minor recommendations above are addressed.
 
 ---
+
+## Update: March 30, 2026
+
+The following remediations have now been implemented:
+
+1. Redirect-form values for JazzCash and EasyPaisa are HTML-escaped before rendering.
+2. Stripe PKR requests are rejected instead of being silently reinterpreted as USD.
+3. Stripe middleware now requires the exact raw request body for signature verification.
+4. Documentation now distinguishes Stripe provider-enforced idempotency from merchant-side reference reuse in JazzCash/EasyPaisa.
+
+---
 *End of Report*

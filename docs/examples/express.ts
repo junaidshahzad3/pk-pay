@@ -7,6 +7,7 @@
  * Install: npm install express pk-pay
  */
 
+// @ts-nocheck
 import express from 'express';
 import { configure } from 'pk-pay';
 import { createWebhookMiddleware } from 'pk-pay/middleware/express';

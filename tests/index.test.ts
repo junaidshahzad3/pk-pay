@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { configure, createPayment, verifyWebhook, createClient, ConfigurationError, ValidationError } from '../src/index.ts';
-import { JazzCashAdapter } from '../src/providers/jazzcash/index.ts';
-import { EasyPaisaAdapter } from '../src/providers/easypaisa/index.ts';
-import { StripeAdapter } from '../src/providers/stripe/index.ts';
+
 
 vi.mock('../src/providers/jazzcash/index.js', () => ({
   JazzCashAdapter: vi.fn().mockImplementation(() => ({
@@ -41,7 +39,7 @@ describe('pk-pay Core (index.ts)', () => {
 
   describe('configure()', () => {
     it('throws ValidationError for invalid config', () => {
-      // @ts-expect-error - testing invalid input
+      // @ts-expect-error - testing invalid environment value
       expect(() => configure({ environment: 'invalid' })).toThrow(ValidationError);
     });
 
@@ -118,7 +116,7 @@ describe('pk-pay Core (index.ts)', () => {
 
     it('throws ValidationError for invalid payment request', async () => {
       configure(validConfig);
-      // @ts-expect-error
+      // @ts-expect-error - missing required fields in payment request
       await expect(createPayment({ provider: 'stripe' })).rejects.toThrow(ValidationError);
     });
   });
@@ -145,7 +143,7 @@ describe('pk-pay Core (index.ts)', () => {
     });
 
     it('throws ValidationError for invalid client config', () => {
-      // @ts-expect-error
+      // @ts-expect-error - testing invalid environment value for client
       expect(() => createClient({ environment: 'invalid' })).toThrow(ValidationError);
     });
   });

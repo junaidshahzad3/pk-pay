@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pk-pay — Live Checkout Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --primary: #c084fc;
+            --primary-glow: rgba(192, 132, 252, 0.4);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --jazz-yellow: #facc15;
+            --easy-green: #22c55e;
+            --stripe-blue: #6366f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .background-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -100px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--stripe-blue);
+            bottom: -50px;
+            left: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .checkout-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .provider-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .provider-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .provider-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .provider-btn.active[data-provider="jazzcash"] { border-color: var(--jazz-yellow); box-shadow: 0 10px 20px -10px var(--jazz-yellow); }
+        .provider-btn.active[data-provider="easypaisa"] { border-color: var(--easy-green); box-shadow: 0 10px 20px -10px var(--easy-green); }
+        .provider-btn.active[data-provider="stripe"] { border-color: var(--stripe-blue); box-shadow: 0 10px 20px -10px var(--stripe-blue); }
+
+        .icon { font-size: 1.5rem; }
+        .provider-name { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .pay-button {
+            width: 100%;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 16px;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pay-button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .pay-button:active {
+            transform: scale(0.98);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        /* Loading UI */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <header>
+        <h1>pk-pay</h1>
+        <p>Unified SDK Demo • Production Readiness Test</p>
+    </header>
+
+    <main class="checkout-container">
+        <h2>Order Summary</h2>
+        
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="cust-name" value="Junaid Test">
+        </div>
+
+        <div class="input-group">
+            <label>Amount (PKR)</label>
+            <input type="number" id="amount" value="500">
+        </div>
+
+        <div class="input-group">
+            <label>Phone (+92)</label>
+            <input type="text" id="phone" value="03001234567">
+        </div>
+
+        <label style="margin-bottom: 0.75rem; display: block;">Select Payment Method</label>
+        <div class="provider-grid">
+            <button class="provider-btn active" data-provider="jazzcash">
+                <span class="icon">📱</span>
+                <span class="provider-name">JazzCash</span>
+            </button>
+            <button class="provider-btn" data-provider="easypaisa">
+                <span class="icon">💸</span>
+                <span class="provider-name">EasyPaisa</span>
+            </button>
+            <button class="provider-btn" data-provider="stripe">
+                <span class="icon">💳</span>
+                <span class="provider-name">Stripe</span>
+            </button>
+        </div>
+
+        <button class="pay-button" id="btn-pay">Pay with JazzCash</button>
+    </main>
+
+    <div class="footer">
+        Powered by pk-pay 0.1.2 • MIT Licensed
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Initiating Secure Payment...</p>
+    </div>
+
+    <!-- Hidden form container for SDK redirects -->
+    <div id="redirect-container" style="display: none;"></div>
+
+    <script>
+        let selectedProvider = 'jazzcash';
+        
+        const btns = document.querySelectorAll('.provider-btn');
+        const payBtn = document.getElementById('btn-pay');
+        const loading = document.getElementById('loading');
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedProvider = btn.dataset.provider;
+                payBtn.innerText = `Pay with ${btn.querySelector('.provider-name').innerText}`;
+            });
+        });
+
+        payBtn.addEventListener('click', async () => {
+            loading.style.display = 'flex';
+            
+            const currency = selectedProvider === 'stripe' ? 'USD' : 'PKR';
+            const amountInput = parseInt(document.getElementById('amount').value);
+            
+            const payload = {
+                provider: selectedProvider,
+                amount: selectedProvider === 'stripe' ? amountInput : amountInput * 100, // PKR to Paisas, USD stays Cents
+                currency: currency,
+                phone: document.getElementById('phone').value,
+                description: 'Demo Order — High Fidelity'
+            };
+
+            try {
+                const response = await fetch('/api/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (data.redirectForm) {
+                    // Success - render the auto-submit form
+                    const container = document.getElementById('redirect-container');
+                    container.innerHTML = data.redirectForm;
+                    
+                    // Manually trigger submission because innerHTML blocks script execution
+                    const form = container.querySelector('form');
+                    if (form) form.submit();
+                } else if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.error || 'Payment failed');
+                    loading.style.display = 'none';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

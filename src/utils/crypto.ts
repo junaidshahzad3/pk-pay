@@ -41,7 +41,9 @@ export function sanitizeRaw<T>(data: T): T {
     'integritySalt',
     'password',
     'secretKey',
+    'privateKey',
     'webhookSecret',
+    'signature',
     'hash',
   ];
 
@@ -56,4 +58,16 @@ export function sanitizeRaw<T>(data: T): T {
   }
 
   return sanitized as T;
+}
+
+/**
+ * Escapes a string for safe placement inside an HTML attribute value.
+ */
+export function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }

@@ -101,5 +101,32 @@ describe('Next.js Middleware', () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
     });
+
+    it('requires rawBody for Stripe in Pages Router', async () => {
+      const handler = createNextPagesWebhookHandler('stripe', { onSuccess: vi.fn() });
+      await handler({ headers: { 'stripe-signature': 'sig123' }, body: { foo: 'bar' } } as any, mockRes);
+
+      expect(core.verifyWebhook).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: expect.stringContaining('Stripe webhook verification requires the raw request body'),
+      });
+    });
+
+    it('passes rawBody through for Stripe in Pages Router', async () => {
+      vi.spyOn(core, 'verifyWebhook').mockResolvedValue({ id: '123' } as any);
+      const handler = createNextPagesWebhookHandler('stripe', { onSuccess: vi.fn() });
+      await handler(
+        {
+          headers: { 'stripe-signature': 'sig123' },
+          body: { ignored: true },
+          rawBody: Buffer.from('raw_body'),
+        } as any,
+        mockRes,
+      );
+
+      expect(core.verifyWebhook).toHaveBeenCalledWith('stripe', 'raw_body', 'sig123');
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+    });
   });
 });

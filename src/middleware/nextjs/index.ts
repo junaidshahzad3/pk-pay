@@ -5,13 +5,13 @@
  *
  * @example
  * ```typescript
- * // app/api/webhooks/jazzcash/route.ts
+ * // app/api/webhooks/stripe/route.ts
  * import { createNextWebhookHandler } from 'pk-pay/middleware/nextjs';
  * import { configure } from 'pk-pay';
  *
  * configure({ ... });
  *
- * export const POST = createNextWebhookHandler('jazzcash', {
+ * export const POST = createNextWebhookHandler('stripe', {
  *   onSuccess: async (event) => {
  *     console.log('Payment succeeded:', event.transactionId);
  *     // Update your DB, etc.
@@ -22,6 +22,9 @@
 
 import { verifyWebhook } from '../../index.js';
 import type { Provider, WebhookEvent } from '../../types/index.js';
+
+const STRIPE_RAW_BODY_ERROR =
+  'Stripe webhook verification requires the raw request body. Disable the default body parser and pass the raw body string to createNextPagesWebhookHandler("stripe", ...).';
 
 // Structural types for Next.js Request/Response (avoids hard next dep)
 interface NextRequest {
@@ -105,20 +108,39 @@ export function createNextWebhookHandler(
  *
  * @example
  * ```typescript
- * // pages/api/webhooks/jazzcash.ts
+ * // pages/api/webhooks/stripe.ts
  * import { createNextPagesWebhookHandler } from 'pk-pay/middleware/nextjs';
- * export default createNextPagesWebhookHandler('jazzcash', { ... });
+ *
+ * export const config = {
+ *   api: {
+ *     bodyParser: false,
+ *   },
+ * };
+ *
+ * export default createNextPagesWebhookHandler('stripe', { ... });
  * ```
  */
 export function createNextPagesWebhookHandler(
   provider: Provider,
   options: NextWebhookHandlerOptions,
-): (req: { headers: Record<string, string | string[] | undefined>; body: unknown }, res: { status(n: number): { json(d: unknown): void } }) => Promise<void> {
+): (req: { headers: Record<string, string | string[] | undefined>; body: unknown; rawBody?: string | Buffer }, res: { status(n: number): { json(d: unknown): void } }) => Promise<void> {
   return async (req, res): Promise<void> => {
     try {
-      const payload = req.body as string | Record<string, unknown>;
+      let payload: string | Record<string, unknown>;
       const sigHeader = req.headers['stripe-signature'];
       const signature = Array.isArray(sigHeader) ? sigHeader[0] : sigHeader;
+
+      if (provider === 'stripe') {
+        if (typeof req.rawBody === 'string') {
+          payload = req.rawBody;
+        } else if (req.rawBody instanceof Buffer) {
+          payload = req.rawBody.toString();
+        } else {
+          throw new Error(STRIPE_RAW_BODY_ERROR);
+        }
+      } else {
+        payload = req.body as string | Record<string, unknown>;
+      }
 
       const event = await verifyWebhook(provider, payload, signature);
       await options.onSuccess(event, req as unknown as NextRequest);

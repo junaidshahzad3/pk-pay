@@ -4,6 +4,11 @@
  * The main entry point. Use `configure()` to initialize the SDK,
  * then `createPayment()` to process payments across JazzCash, EasyPaisa, and Stripe.
  *
+ * Provider-specific constraints still apply:
+ * - JazzCash requires whole-rupee PKR amounts and a customer phone number
+ * - EasyPaisa requires a customer phone number
+ * - Stripe requires a Stripe-supported currency (not PKR)
+ *
  * @example
  * ```typescript
  * import { configure, createPayment } from 'pk-pay';

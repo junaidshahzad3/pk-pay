@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * pk-pay + Next.js App Router — Full webhook example
  *

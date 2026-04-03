@@ -99,13 +99,21 @@ export const JazzCashConfigSchema = z.object({
   merchantId: z.string().min(1),
   password: z.string().min(1),
   integritySalt: z.string().min(1),
+  version: z.string().default('2.0'),
   environment: EnvironmentSchema.default('sandbox'),
 });
 export type JazzCashConfig = z.infer<typeof JazzCashConfigSchema>;
 
 export const EasyPaisaConfigSchema = z.object({
+  /** 'legacy' for Hosted Checkout (HMAC), 'rest' for Modern API (RSA) */
+  method: z.enum(['legacy', 'rest']).default('legacy'),
   storeId: z.string().min(1),
-  hashKey: z.string().min(1),
+  /** Required for 'legacy' method */
+  hashKey: z.string().min(1).optional(),
+  /** Required for 'rest' method (RSA Private Key) */
+  privateKey: z.string().min(1).optional(),
+  /** Recommended for 'rest' method to verify incoming responses */
+  easypaisaPublicKey: z.string().optional(),
   username: z.string().min(1),
   password: z.string().min(1),
   environment: EnvironmentSchema.default('sandbox'),

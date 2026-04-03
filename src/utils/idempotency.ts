@@ -1,17 +1,17 @@
 /**
  * Idempotency key utilities.
  *
- * Idempotency keys ensure that if a payment request is sent multiple times
- * (e.g., due to network timeouts), the provider only processes it once.
- * Each provider has different header name conventions — this module
- * abstracts that.
+ * Idempotency keys help correlate retries and duplicate submissions.
+ * Stripe supports provider-enforced idempotency via a real request header.
+ * JazzCash and EasyPaisa currently reuse merchant reference values instead of
+ * sending provider-enforced idempotency headers.
  */
 
 import { type Provider } from '../types/index.js';
 
 /**
  * Generates a UUID v4 idempotency key.
- * Uses the Web Crypto API (available in Node.js ≥ 18).
+ * Uses the Web Crypto API (available in Node.js >= 18).
  */
 export function generateIdempotencyKey(): string {
   return crypto.randomUUID();
@@ -27,9 +27,9 @@ export function resolveIdempotencyKey(provided?: string): string {
 }
 
 /**
- * Returns the HTTP header name used by each provider for idempotency keys.
- * JazzCash and EasyPaisa use a custom order reference field;
- * Stripe uses the standard Idempotency-Key header.
+ * Returns the conventional idempotency header name for each provider.
+ * Only Stripe currently uses this directly in API requests within pk-pay.
+ * JazzCash and EasyPaisa reuse merchant-side reference fields instead.
  */
 export function getIdempotencyHeader(provider: Provider): string {
   switch (provider) {
@@ -44,7 +44,7 @@ export function getIdempotencyHeader(provider: Provider): string {
 
 /**
  * Validates that an idempotency key meets minimum format requirements.
- * Keys must be 1–255 characters of printable ASCII.
+ * Keys must be 1-255 characters of printable ASCII.
  */
 export function validateIdempotencyKey(key: string): boolean {
   return key.length >= 1 && key.length <= 255 && /^[\x20-\x7E]+$/.test(key);

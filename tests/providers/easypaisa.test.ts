@@ -5,6 +5,7 @@ import type { EasyPaisaConfig, PaymentRequest } from '../../src/types/index.js';
 import { ConfigurationError, ProviderError } from '../../src/types/index.js';
 
 const MOCK_CONFIG: EasyPaisaConfig = {
+  method: 'legacy',
   storeId: 'TEST_STORE_ID',
   hashKey: 'TEST_HASH_KEY',
   username: 'test_user',
@@ -89,6 +90,24 @@ describe('EasyPaisaAdapter', () => {
       expect(result.redirectForm).toContain('name="merchantHashedReq"');
       expect(result.redirectForm).toContain('value="');
     });
+
+    it('escapes dangerous HTML characters in redirectForm fields', async () => {
+      const result = await adapter.createPayment(
+        {
+          ...BASE_REQUEST,
+          description: `"><script>alert("x")</script>&`,
+          returnUrl: 'https://example.com/callback?x="1"&y=<tag>',
+          customerPhone: '+92300"><script>1</script>',
+          customerEmail: `user"'<tag>@example.com`,
+        },
+        'idem-escape',
+      );
+
+      expect(result.redirectForm).toContain('https://example.com/callback?x=&quot;1&quot;&amp;y=&lt;tag&gt;');
+      expect(result.redirectForm).toContain('0300&quot;&gt;&lt;script&gt;1&lt;/script&gt;');
+      expect(result.redirectForm).toContain('user&quot;&#39;&lt;tag&gt;@example.com');
+      expect(result.redirectForm).not.toContain('value=""><script>');
+    });
   });
 
   describe('verifyWebhook', () => {
@@ -101,7 +120,7 @@ describe('EasyPaisaAdapter', () => {
         storeId: MOCK_CONFIG.storeId,
         ...overrides,
       };
-      params['merchantHashedReq'] = computeExpectedHash(params, MOCK_CONFIG.hashKey);
+      params['merchantHashedReq'] = computeExpectedHash(params, MOCK_CONFIG.hashKey!);
       return params;
     }
 

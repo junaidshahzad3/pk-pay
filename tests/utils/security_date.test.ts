@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { safeCompare, sanitizeRaw } from '../../src/utils/crypto.js';
+import { escapeHtmlAttribute, safeCompare, sanitizeRaw } from '../../src/utils/crypto.js';
 import { formatToPKT } from '../../src/utils/date.js';
 
 describe('Security Utilities', () => {
@@ -44,6 +44,12 @@ describe('Security Utilities', () => {
       const input = [{ password: '123' }, { other: '456' }];
       const expected = [{ password: '[REDACTED]' }, { other: '456' }];
       expect(sanitizeRaw(input)).toEqual(expected);
+    });
+  });
+
+  describe('escapeHtmlAttribute', () => {
+    it('should escape dangerous HTML characters', () => {
+      expect(escapeHtmlAttribute(`"'<>&`)).toBe('&quot;&#39;&lt;&gt;&amp;');
     });
   });
 });

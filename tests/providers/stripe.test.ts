@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StripeAdapter } from '../../src/providers/stripe/index.js';
 import type { StripeConfig, PaymentRequest } from '../../src/types/index.js';
-import { ConfigurationError, ProviderError } from '../../src/types/index.js';
+import { ConfigurationError, ProviderError, ValidationError } from '../../src/types/index.js';
 
 const MOCK_CONFIG: StripeConfig = {
   secretKey: 'sk_test_fakekeyfortesting1234567890',
@@ -47,9 +47,9 @@ vi.mock('stripe', () => {
 
 async function getMockStripe() {
   const mod = await import('stripe');
-  return (mod as unknown as { __mockStripe: ReturnType<typeof vi.fn> }).__mockStripe as {
-    checkout: { sessions: { create: ReturnType<typeof vi.fn> } };
-    webhooks: { constructEvent: ReturnType<typeof vi.fn> };
+  return (mod as any).__mockStripe as {
+    checkout: { sessions: { create: any } };
+    webhooks: { constructEvent: any };
   };
 }
 
@@ -104,12 +104,24 @@ describe('StripeAdapter', () => {
       );
     });
 
-    it('converts PKR to USD currency for Stripe', async () => {
+    it('supports EUR and GBP without rewriting the amount', async () => {
       const mockStripe = await getMockStripe();
-      await adapter.createPayment({ ...BASE_REQUEST, currency: 'PKR' }, 'idem-pkr');
+      await adapter.createPayment({ ...BASE_REQUEST, currency: 'EUR' }, 'idem-eur');
+      await adapter.createPayment({ ...BASE_REQUEST, currency: 'GBP' }, 'idem-gbp');
 
-      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as { line_items: Array<{ price_data: { currency: string } }> };
-      expect(callArgs.line_items[0]?.price_data.currency).toBe('usd');
+      const eurArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as any;
+      const gbpArgs = mockStripe.checkout.sessions.create.mock.calls[1]?.[0] as any;
+
+      expect(eurArgs.line_items[0]?.price_data.currency).toBe('eur');
+      expect(eurArgs.line_items[0]?.price_data.unit_amount).toBe(5000);
+      expect(gbpArgs.line_items[0]?.price_data.currency).toBe('gbp');
+      expect(gbpArgs.line_items[0]?.price_data.unit_amount).toBe(5000);
+    });
+
+    it('rejects PKR because Stripe is not safely supported for PKR', async () => {
+      await expect(
+        adapter.createPayment({ ...BASE_REQUEST, currency: 'PKR' }, 'idem-pkr'),
+      ).rejects.toThrow(ValidationError);
     });
 
     it('returns succeeded status when session status is complete', async () => {

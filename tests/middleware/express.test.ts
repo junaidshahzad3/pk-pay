@@ -28,10 +28,10 @@ describe('Express Middleware', () => {
     const onSuccess = vi.fn().mockResolvedValue(undefined);
     const middleware = createWebhookMiddleware('stripe', { onSuccess });
 
-    await middleware(req, res, next);
+    await middleware({ ...req, rawBody: Buffer.from('raw_body') }, res, next);
 
-    expect(core.verifyWebhook).toHaveBeenCalledWith('stripe', JSON.stringify(req.body), 'sig123');
-    expect(onSuccess).toHaveBeenCalledWith(event, req, res);
+    expect(core.verifyWebhook).toHaveBeenCalledWith('stripe', 'raw_body', 'sig123');
+    expect(onSuccess).toHaveBeenCalledWith(event, expect.objectContaining({ rawBody: Buffer.from('raw_body') }), res);
   });
 
   it('handles rawBody if present for Stripe', async () => {
@@ -52,26 +52,28 @@ describe('Express Middleware', () => {
   });
 
   it('calls onError on verification failure', async () => {
-    const error = new Error('Verification failed');
-    vi.spyOn(core, 'verifyWebhook').mockRejectedValue(error);
-
     const onError = vi.fn().mockResolvedValue(undefined);
     const middleware = createWebhookMiddleware('stripe', { onSuccess: vi.fn(), onError });
 
     await middleware(req, res, next);
 
-    expect(onError).toHaveBeenCalledWith(error, req, res);
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Stripe webhook verification requires the raw request body'),
+      }),
+      req,
+      res,
+    );
   });
 
   it('responds with 400 by default on error', async () => {
-    const error = new Error('Failed');
-    vi.spyOn(core, 'verifyWebhook').mockRejectedValue(error);
-
     const middleware = createWebhookMiddleware('stripe', { onSuccess: vi.fn() });
 
     await middleware(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Failed' });
+    expect(res.json).toHaveBeenCalledWith({
+      error: expect.stringContaining('Stripe webhook verification requires the raw request body'),
+    });
   });
 });

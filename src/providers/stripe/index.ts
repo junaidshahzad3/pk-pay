@@ -5,9 +5,8 @@
  * unified interface. It creates a Stripe Checkout Session (hosted checkout),
  * which is the recommended integration for most use cases.
  *
- * For PKR: Stripe does NOT support PKR as a currency. This adapter converts
- * PKR amounts to USD using a configurable exchange rate, or you can configure
- * a different currency. The preferred usage is with USD when using Stripe.
+ * PKR is not supported by this adapter. Callers must provide a Stripe-supported
+ * currency such as USD, EUR, or GBP.
  *
  * Docs: https://stripe.com/docs
  */
@@ -20,20 +19,11 @@ import {
   type ProviderAdapter,
   ProviderError,
   ConfigurationError,
+  ValidationError,
 } from '../../types/index.js';
 import { sanitizeRaw } from '../../utils/crypto.js';
 
 // ─── Stripe Status Mapping ────────────────────────────────────────────────────
-
-const STRIPE_PAYMENT_STATUS_MAP: Record<string, PaymentResult['status']> = {
-  succeeded: 'succeeded',
-  requires_payment_method: 'pending',
-  requires_confirmation: 'pending',
-  requires_action: 'pending',
-  processing: 'processing',
-  canceled: 'cancelled',
-  requires_capture: 'pending',
-};
 
 const STRIPE_SESSION_STATUS_MAP: Record<string, PaymentResult['status']> = {
   complete: 'succeeded',
@@ -76,6 +66,8 @@ export class StripeAdapter implements ProviderAdapter {
       }
 
       this.stripeClient = new Stripe(this.config.secretKey, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        apiVersion: '2025-03-31.basil' as any,
         appInfo: {
           name: 'pk-pay',
           version: '0.1.0',
@@ -92,8 +84,14 @@ export class StripeAdapter implements ProviderAdapter {
   ): Promise<PaymentResult> {
     const stripe = await this.getStripeClient();
 
-    // Stripe doesn't support PKR — default to USD for Stripe provider
-    const currency = request.currency === 'PKR' ? 'usd' : request.currency.toLowerCase();
+    if (request.currency === 'PKR') {
+      throw new ValidationError(
+        'Stripe does not support PKR through pk-pay. Use a Stripe-supported currency such as USD, EUR, or GBP.',
+        'stripe',
+      );
+    }
+
+    const currency = request.currency.toLowerCase();
 
     try {
       const session = await stripe.checkout.sessions.create(

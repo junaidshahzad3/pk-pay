@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { createHmac } from 'crypto';
 import { JazzCashAdapter } from '../../src/providers/jazzcash/index.js';
 import type { JazzCashConfig, PaymentRequest } from '../../src/types/index.js';
-import { ConfigurationError, ProviderError, ValidationError } from '../../src/types/index.js';
+import { ConfigurationError, ProviderError } from '../../src/types/index.js';
 
 const MOCK_CONFIG: JazzCashConfig = {
+  version: '2.0',
   merchantId: 'TEST_MERCHANT',
   password: 'TEST_PASSWORD',
   integritySalt: 'TEST_SALT',
@@ -95,7 +96,7 @@ describe('JazzCashAdapter', () => {
         'idem-long',
       );
       const descMatch = result.redirectForm!.match(/name="pp_Description" value="([^"]+)"/);
-      expect(descMatch![1].length).toBeLessThanOrEqual(100);
+      expect(descMatch?.[1]?.length).toBeLessThanOrEqual(100);
     });
 
     it('uses orderId as BillReference when provided', async () => {
@@ -104,6 +105,24 @@ describe('JazzCashAdapter', () => {
         'idem-order',
       );
       expect(result.redirectForm).toContain('name="pp_BillReference" value="order-abc-123"');
+    });
+
+    it('escapes dangerous HTML characters in redirectForm fields', async () => {
+      const result = await adapter.createPayment(
+        {
+          ...BASE_REQUEST,
+          description: `"><script>alert("x")</script>&`,
+          orderId: `ord"'><tag>&`,
+          returnUrl: 'https://example.com/callback?x="1"&y=<tag>',
+          customerPhone: `0300"><script>1</script>`,
+        },
+        'idem-escape',
+      );
+
+      expect(result.redirectForm).toContain('&quot;&gt;&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;&amp;');
+      expect(result.redirectForm).toContain('ord&quot;&#39;&gt;&lt;tag&gt;&amp;');
+      expect(result.redirectForm).toContain('https://example.com/callback?x=&quot;1&quot;&amp;y=&lt;tag&gt;');
+      expect(result.redirectForm).not.toContain('value=""><script>');
     });
 
     it('throws ValidationError for non-integer Rupee amounts', async () => {

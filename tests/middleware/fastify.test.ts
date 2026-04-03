@@ -40,7 +40,7 @@ describe('Fastify Middleware', () => {
     });
 
     await (plugin as any)(fastify, {}, () => {});
-    const handler = fastify.post.mock.calls[0][1];
+
 
     vi.spyOn(core, 'verifyWebhook').mockResolvedValue({ id: '123' } as any);
     const onSuccess = vi.fn();

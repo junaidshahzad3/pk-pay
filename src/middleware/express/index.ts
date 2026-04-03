@@ -13,7 +13,7 @@
  *
  * const app = express();
  *
- * // Use raw body for webhook signature verification
+ * // JazzCash/EasyPaisa: form-encoded webhook bodies
  * app.post(
  *   '/webhooks/jazzcash',
  *   express.urlencoded({ extended: true }),
@@ -28,12 +28,22 @@
  *     },
  *   }),
  * );
+ *
+ * // Stripe: raw request body is required for signature verification
+ * app.post(
+ *   '/webhooks/stripe',
+ *   express.raw({ type: 'application/json' }),
+ *   createWebhookMiddleware('stripe', { onSuccess: async () => {} }),
+ * );
  * ```
  */
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import { verifyWebhook } from '../../index.js';
 import type { Provider, WebhookEvent } from '../../types/index.js';
+
+const STRIPE_RAW_BODY_ERROR =
+  'Stripe webhook verification requires the raw request body. Configure express.raw({ type: "application/json" }) or expose req.rawBody before calling createWebhookMiddleware("stripe", ...).';
 
 export interface WebhookMiddlewareOptions {
   /**
@@ -66,12 +76,11 @@ export function createWebhookMiddleware(
       let signature: string | undefined;
 
       if (provider === 'stripe') {
-        // Stripe requires raw body as string
-        payload =
-          typeof req.body === 'string'
-            ? req.body
-            : (req as Request & { rawBody?: Buffer }).rawBody?.toString() ??
-              JSON.stringify(req.body);
+        const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+        if (!rawBody) {
+          throw new Error(STRIPE_RAW_BODY_ERROR);
+        }
+        payload = rawBody.toString();
         signature = req.headers['stripe-signature'] as string | undefined;
       } else {
         // JazzCash and EasyPaisa send form-encoded POST data
