@@ -1,88 +1,59 @@
 # Contributing to pk-pay
 
-Thank you for your interest in contributing! This library helps Pakistani developers build better payment integrations. Your contributions make a real difference.
+First off, thank you for considering contributing to `pk-pay`! It's people like you who make it such a great tool for the Pakistani developer community.
 
-## Development Setup
+## 🏗️ Monorepo Structure
+
+This project is organized as a monorepo using npm workspaces:
+
+- `packages/pk-pay`: The core SDK source code.
+- `apps/playground`: The interactive testing environment.
+
+## 🚀 Getting Started
+
+1. **Fork and Clone**:
+   ```bash
+   git clone https://github.com/your-username/pk-pay.git
+   cd pk-pay
+   ```
+
+2. **Install Everything**:
+   ```bash
+   # This will link all workspaces and install shared dependencies
+   npm install
+   ```
+
+3. **Development**:
+   - To work on the core SDK: Look in `packages/pk-pay/src`.
+   - To work on the playground: Look in `apps/playground/src`.
+
+## 🧪 Running Tests
+
+We use Vitest for the core SDK. Run tests from the root:
 
 ```bash
-# Clone & install
-git clone https://github.com/junaidshahzad3/pk-pay.git
-cd pk-pay
-npm install
+# Run all SDK tests
+npm test
 
-# Copy env and fill in sandbox credentials
-cp .env.example .env
+# Run with coverage
+npm run test:cov --workspace=packages/pk-pay
 ```
 
-## Development Commands
+## 🛠️ Workspace Commands
 
-```bash
-npm run typecheck    # TypeScript type checking
-npm run lint         # ESLint
-npm run test         # Run tests
-npm run test:watch   # Tests in watch mode
-npm run test:cov     # Tests with coverage report
-npm run build        # Build dist/
-```
+We use npm workspaces to manage the ecosystem:
 
-## Project Structure
+- **Build SDK**: `npm run build --workspace=packages/pk-pay`
+- **Run Playground**: `npm run dev:playground`
+- **Lint All**: `npm run lint`
 
-```
-src/
-├── index.ts              # Public API (configure, createPayment, verifyWebhook)
-├── types/index.ts        # All shared types and Zod schemas
-├── utils/
-│   ├── retry.ts          # Exponential backoff retry
-│   └── idempotency.ts    # Idempotency key generation
-├── providers/
-│   ├── jazzcash/         # JazzCash adapter
-│   ├── easypaisa/        # EasyPaisa adapter
-│   └── stripe/           # Stripe adapter
-└── middleware/
-    ├── express/           # Express.js webhook middleware
-    ├── fastify/           # Fastify plugin
-    └── nextjs/            # Next.js route handlers
-tests/
-├── providers/            # Provider adapter tests
-└── utils/                # Utility tests
-```
+## 📬 Pull Request Process
 
-## Conventional Commits
+1. Create a new branch for your feature or fix.
+2. Ensure all tests pass.
+3. Update documentation if you've added new features or providers.
+4. Submit a PR against the `develop` branch.
 
-All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+## 🏛️ Code of Conduct
 
-```
-feat: add EasyPaisa MA payment support
-fix: correct JazzCash hash computation for empty fields
-docs: add Express webhook middleware example
-test: add retry backoff timing tests
-chore: update zod to 3.24
-```
-
-Types: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`, `perf`, `ci`
-
-## Adding a New Provider
-
-With our **Dynamic Plugin Architecture**, you can add new providers without modifying the core SDK:
-
-1.  **Implement the Adapter**: Create a class that implements the `ProviderAdapter` interface (see `src/types/index.ts`).
-2.  **Define Config**: Add your provider's specific configuration schema (if any).
-3.  **Registering**: Use `registerProvider('your-name', YourAdapterClass)` to plug it into the SDK.
-4.  **Testing**: Add a new test file in `tests/providers/<name>.test.ts` or add to `tests/dynamic_providers.test.ts`.
-
-If you believe the provider should be part of the official core package, please open a feature request first!
-
-## Pull Request Process
-
-1. Fork the repo and create a branch: `git checkout -b feat/your-feature`
-2. Write tests for your changes (aim for ≥80% coverage).
-3. Ensure all checks pass: `npm run typecheck && npm run lint && npm run test`.
-4. Open a PR using the provided **Pull Request Template**.
-
-## Reporting Issues
-
-Please use our **Issue Templates** to report bugs or request features. This ensures we have all the context (Node version, specific provider, logs) needed to help you quickly.
-
-## Code of Conduct
-
-All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md). Be respectful, constructive, and kind. We're all here to build better software for the community.
+Please note we have a [Code of Conduct](CODE_OF_CONDUCT.md). Please follow it in all your interactions with the project.

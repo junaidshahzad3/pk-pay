@@ -1,0 +1,96 @@
+{
+  "name": "pk-pay",
+  "version": "0.2.0",
+  "description": "Unified TypeScript SDK for Pakistani payments — JazzCash, EasyPaisa, and Stripe in one API",
+  "keywords": [
+    "jazzcash",
+    "easypaisa",
+    "stripe",
+    "payments",
+    "pakistan",
+    "pkr",
+    "typescript",
+    "sdk",
+    "payment-gateway"
+  ],
+  "author": "Junaid Shahzad <junaidshahzad3@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junaidshahzad3/pk-pay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/junaidshahzad3/pk-pay/issues"
+  },
+  "homepage": "https://github.com/junaidshahzad3/pk-pay#readme",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./middleware/express": {
+      "types": "./dist/middleware/express/index.d.ts",
+      "import": "./dist/middleware/express/index.js",
+      "require": "./dist/middleware/express/index.cjs"
+    },
+    "./middleware/fastify": {
+      "types": "./dist/middleware/fastify/index.d.ts",
+      "import": "./dist/middleware/fastify/index.js",
+      "require": "./dist/middleware/fastify/index.cjs"
+    },
+    "./middleware/nextjs": {
+      "types": "./dist/middleware/nextjs/index.d.ts",
+      "import": "./dist/middleware/nextjs/index.js",
+      "require": "./dist/middleware/nextjs/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
+    "stripe": "^17.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "stripe": "^17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "stripe": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
