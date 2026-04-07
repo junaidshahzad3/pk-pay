@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "rootDirectory": "apps/playground",
   "framework": "nextjs",
   "installCommand": "npm install",
   "buildCommand": "npm run build"
