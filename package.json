@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=packages/pk-pay",
+    "build": "npm run build --workspace=packages/pk-pay && npm run build --workspace=apps/playground",
     "test": "npm run test --workspace=packages/pk-pay",
     "test:cov": "npm run test:cov --workspace=packages/pk-pay",
     "lint": "npm run lint --workspace=packages/pk-pay",
