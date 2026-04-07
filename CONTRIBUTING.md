@@ -63,46 +63,26 @@ Types: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`, `perf`, `ci`
 
 ## Adding a New Provider
 
-1. Create `src/providers/<name>/index.ts`
-2. Export an adapter class implementing `ProviderAdapter` from `src/types/index.ts`
-3. Add provider name to the `Provider` union type in `src/types/index.ts`
-4. Add a config schema and type to `src/types/index.ts`
-5. Wire it up in `src/index.ts` (`getAdapter` switch)
-6. Add tests in `tests/providers/<name>.test.ts`
-7. Update `README.md` and `.env.example`
+With our **Dynamic Plugin Architecture**, you can add new providers without modifying the core SDK:
+
+1.  **Implement the Adapter**: Create a class that implements the `ProviderAdapter` interface (see `src/types/index.ts`).
+2.  **Define Config**: Add your provider's specific configuration schema (if any).
+3.  **Registering**: Use `registerProvider('your-name', YourAdapterClass)` to plug it into the SDK.
+4.  **Testing**: Add a new test file in `tests/providers/<name>.test.ts` or add to `tests/dynamic_providers.test.ts`.
+
+If you believe the provider should be part of the official core package, please open a feature request first!
 
 ## Pull Request Process
 
 1. Fork the repo and create a branch: `git checkout -b feat/your-feature`
-2. Write tests for your changes (aim for ≥80% coverage)
-3. Ensure all checks pass: `npm run typecheck && npm run lint && npm run test`
-4. Open a PR with the template below
-
-### PR Template
-
-```markdown
-## What
-Brief description of the change.
-
-## Why
-Link to the issue. What problem does this solve?
-
-## How
-Your approach and any alternatives considered.
-
-## Testing
-How did you test this? Any edge cases?
-```
+2. Write tests for your changes (aim for ≥80% coverage).
+3. Ensure all checks pass: `npm run typecheck && npm run lint && npm run test`.
+4. Open a PR using the provided **Pull Request Template**.
 
 ## Reporting Issues
 
-Please include:
-- Node.js version (`node --version`)
-- pk-pay version
-- Provider being used (JazzCash / EasyPaisa / Stripe)
-- Minimal reproduction code
-- Error message and stack trace
+Please use our **Issue Templates** to report bugs or request features. This ensures we have all the context (Node version, specific provider, logs) needed to help you quickly.
 
 ## Code of Conduct
 
-Be respectful, constructive, and kind. We're all here to build better software for the community.
+All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md). Be respectful, constructive, and kind. We're all here to build better software for the community.

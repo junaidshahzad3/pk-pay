@@ -1,13 +1,38 @@
 # pk-pay
 
-> Unified TypeScript SDK for Pakistani payments — JazzCash, EasyPaisa, and Stripe in one API
+> Unified TypeScript SDK for Pakistani payments — JazzCash, EasyPaisa, and Stripe in one API.
 
 [![npm](https://img.shields.io/npm/v/pk-pay?color=CB3837&logo=npm)](https://www.npmjs.com/package/pk-pay)
 [![Build](https://github.com/junaidshahzad3/pk-pay/actions/workflows/ci.yml/badge.svg)](https://github.com/junaidshahzad3/pk-pay/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Node](https://img.shields.io/badge/Node-%3E%3D20.0.0-43853d?logo=node.js)](https://nodejs.org/)
 
-One install. One API shape. Integrates each provider from scratch, duplicating authentication, hashing, retry logic, and webhook verification.
+One install. One API shape. Built for flexibility, security, and developer productivity.
+
+---
+
+## 📑 Table of Contents
+- [Features](#-features)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Dynamic Plugin Architecture](#-dynamic-plugin-architecture)
+- [Environment Support](#-environment-support)
+- [Middleware Helpers](#-middleware-helpers)
+- [Documentation Index](#-documentation-index)
+- [Security Features](#-security-features)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## ⚡ Features
+- ✅ **Unified API** — Create payments and verify webhooks for multiple providers with one shape.
+- ✅ **Plugin-Based** — Register any custom provider (HBL, UBL, etc.) via the registry.
+- ✅ **Stripe Multi-Currency** — Full support for 135+ currencies (USD, SAR, EUR, etc.).
+- ✅ **Secure by Design** — Timing-safe signature checks and auto-redaction of sensitive data.
+- ✅ **Framework Friendly** — Pre-built middleware for Express, Fastify, and Next.js.
+- ✅ **Type Safe** — First-class TypeScript support with deep Zod validation.
 
 ---
 
@@ -15,14 +40,16 @@ One install. One API shape. Integrates each provider from scratch, duplicating a
 
 > **Wanna see it live?** Check out the [full checkout demo](examples/full-checkout-demo) for a complete implementation.
 
-### 1. Installation
+## 🛠️ Installation
 ```bash
 npm install pk-pay
 # For Stripe support (optional):
 npm install stripe
 ```
 
-### 2. Configure
+## 🚀 Quick Start
+
+### 1. Configure
 ```typescript
 import { configure } from 'pk-pay';
 
@@ -45,19 +72,15 @@ configure({
     secretKey: '...',
     webhookSecret: '...', // optional
   },
-  // Custom provider configurations are also accepted!
-  custom_bank: {
-    apiKey: '...',
-  }
 });
 ```
 
-### 3. Create Payment
+### 2. Create Payment
 ```typescript
 import { createPayment } from 'pk-pay';
 
 const payment = await createPayment({
-  provider: 'stripe',   // Use any registered provider
+  provider: 'stripe',
   amount: 2500,         // $25.00 in cents
   currency: 'USD',      // Stripe supports 135+ currencies
   description: 'International SaaS Pro Plan',

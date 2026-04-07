@@ -8,14 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-04-03
 
 ### Added
-- **EasyPaisa REST (RSA)**: Implemented high-security RSA 2048-bit digital signatures (SHA256withRSA) for the latest v2.0 REST API.
-- **Improved Sanitization**: Added `privateKey` and `signature` to the list of redacted fields in `sanitizeRaw` for enhanced security.
-- **Centralized Docs**: Migrated detailed provider and architectural guides into a nested `docs/` structure.
+- **Dynamic Plugin Architecture**: Introduced a `ProviderRegistry` and `registerProvider()` API, allowing for the addition of custom payment adapters without modifying the core SDK.
+- **Flexible Data Types**: Refactored `Provider`, `Environment`, `Currency`, and `PaymentStatus` from strict enums to dynamic strings for maximum extensibility.
+- **Full Stripe Multi-Currency**: Removed hardcoded PKR restrictions from the Stripe adapter, enabling support for 135+ Stripe-supported currencies (USD, SAR, EUR, etc.).
+- **EasyPaisa REST (RSA)**: Implemented high-security RSA 2048-bit digital signatures for the latest v2.0 REST API.
+- **Dynamic Sanitization**: Exported `DEFAULT_SENSITIVE_KEYS` and updated `sanitizeRaw` to allow passing additional custom keys for redaction.
 
 ### Changed
-- **JazzCash**: Defaulted `pp_Version` to `2.0` for latest merchant features.
-- **Stripe**: Pinned standard API version to `2025-03-31.basil` to future-proof against upcoming breaking changes in subscription creation.
-- **Repository Cleanliness**: Organized project root by moving the live demo to `examples/full-checkout-demo` and hardening `.gitignore`.
+- **Config Schema**: Updated `PkPayConfigSchema` to use `.catchall()`, permitting storage of arbitrary configuration for custom providers.
+- **Middleware Routing**: Refactored all webhook middleware to use the dynamic registry for adapter lookup.
+- **Stripe API**: Version pinned to `2025-03-31.basil`.
 
 ## [0.1.2] - 2026-04-03
 
