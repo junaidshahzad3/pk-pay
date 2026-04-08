@@ -17,7 +17,7 @@ The `pk-pay` SDK is a well-engineered, security-conscious library. It demonstrat
 4.  **Dependency Security**: Dependencies are minimal (`zod`, `stripe`). Peer dependencies are handled correctly.
 
 ### Recommendations
--   **[Low] Timing-Safe Comparison**: The current `safeCompare` in `src/utils/crypto.ts` includes an early return on length mismatch. While standard for fixed-length hashes, a "constant-time" approach for length comparisons is preferred in extreme security contexts.
+-   **[Low] Timing-Safe Comparison**: The current `safeCompare` in [../src/utils/crypto.ts](../src/utils/crypto.ts) includes an early return on length mismatch. While standard for fixed-length hashes, a "constant-time" approach for length comparisons is preferred in extreme security contexts.
 -   **[Medium] Credit Card Handling**: Confirm that no credit card data (PCI-DSS) is handled directly. Currently, Stripe is handled via official SDK/Redirects, and PK providers use account-based flows (MWALLET), which minimizes scope.
 
 ---

@@ -2,17 +2,15 @@
 
 Thank you for your interest in contributing! This library helps Pakistani developers build better payment integrations. Your contributions make a real difference.
 
-## Development Setup
+1. **Fork and Clone**:
+   Follow the instructions in the [root CONTRIBUTING.md](../../CONTRIBUTING.md) to set up the entire monorepo.
 
-```bash
-# Clone & install
-git clone https://github.com/junaidshahzad3/pk-pay.git
-cd pk-pay
-npm install
-
-# Copy env and fill in sandbox credentials
-cp .env.example .env
-```
+2. **Package Setup**:
+   ```bash
+   cd packages/pk-pay
+   # Copy env and fill in sandbox credentials
+   cp .env.example .env
+   ```
 
 ## Development Commands
 
@@ -28,23 +26,11 @@ npm run build        # Build dist/
 ## Project Structure
 
 ```
-src/
-├── index.ts              # Public API (configure, createPayment, verifyWebhook)
-├── types/index.ts        # All shared types and Zod schemas
-├── utils/
-│   ├── retry.ts          # Exponential backoff retry
-│   └── idempotency.ts    # Idempotency key generation
-├── providers/
-│   ├── jazzcash/         # JazzCash adapter
-│   ├── easypaisa/        # EasyPaisa adapter
-│   └── stripe/           # Stripe adapter
-└── middleware/
-    ├── express/           # Express.js webhook middleware
-    ├── fastify/           # Fastify plugin
-    └── nextjs/            # Next.js route handlers
-tests/
-├── providers/            # Provider adapter tests
-└── utils/                # Utility tests
+src/                      # Internal SDK source (see packages/pk-pay/src from root)
+├── index.ts              # Public API
+├── types/index.ts        # Shared types and schemas
+├── ...
+tests/                    # Shared tests (see packages/pk-pay/tests from root)
 ```
 
 ## Conventional Commits
@@ -65,7 +51,7 @@ Types: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`, `perf`, `ci`
 
 With our **Dynamic Plugin Architecture**, you can add new providers without modifying the core SDK:
 
-1.  **Implement the Adapter**: Create a class that implements the `ProviderAdapter` interface (see `src/types/index.ts`).
+1.  **Implement the Adapter**: Create a class that implements the `ProviderAdapter` interface (see [types/index.ts](src/types/index.ts)).
 2.  **Define Config**: Add your provider's specific configuration schema (if any).
 3.  **Registering**: Use `registerProvider('your-name', YourAdapterClass)` to plug it into the SDK.
 4.  **Testing**: Add a new test file in `tests/providers/<name>.test.ts` or add to `tests/dynamic_providers.test.ts`.
@@ -85,4 +71,4 @@ Please use our **Issue Templates** to report bugs or request features. This ensu
 
 ## Code of Conduct
 
-All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md). Be respectful, constructive, and kind. We're all here to build better software for the community.
+All contributors are expected to follow our [Code of Conduct](../../CODE_OF_CONDUCT.md). Be respectful, constructive, and kind. We're all here to build better software for the community.

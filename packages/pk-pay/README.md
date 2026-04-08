@@ -96,6 +96,30 @@ if (payment.redirectForm) {
 
 ---
 
+## 🛠️ Middleware Helpers
+
+`pk-pay` provides ready-to-use handlers for popular frameworks to handle webhooks effortlessly.
+
+### Express
+```typescript
+import { createWebhookMiddleware } from 'pk-pay';
+app.post('/webhook/jazzcash', createWebhookMiddleware('jazzcash'));
+```
+
+### Fastify
+```typescript
+import { pkPayWebhookPlugin } from 'pk-pay';
+fastify.register(pkPayWebhookPlugin, { provider: 'easypaisa' });
+```
+
+### Next.js (App Router)
+```typescript
+import { createNextWebhookHandler } from 'pk-pay/middleware/nextjs';
+export const POST = createNextWebhookHandler('stripe');
+```
+
+---
+
 ## 📖 Documentation Index
 
 For detailed guides, architecture, and security practices, see the nested documentation:

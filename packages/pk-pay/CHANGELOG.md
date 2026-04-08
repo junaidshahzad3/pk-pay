@@ -84,6 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI: lint + typecheck + test on Node.js 18, 20, 22
 - GitHub Actions publish workflow: auto-publish to npm on GitHub Release with provenance
 
+[0.3.0]: https://github.com/junaidshahzad3/pk-pay/releases/tag/v0.3.0
+[0.2.0]: https://github.com/junaidshahzad3/pk-pay/releases/tag/v0.2.0
 [0.1.2]: https://github.com/junaidshahzad3/pk-pay/releases/tag/v0.1.2
 [0.1.1]: https://github.com/junaidshahzad3/pk-pay/releases/tag/v0.1.1
 [0.1.0]: https://github.com/junaidshahzad3/pk-pay/releases/tag/v0.1.0
