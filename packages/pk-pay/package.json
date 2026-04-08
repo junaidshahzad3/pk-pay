@@ -1,6 +1,6 @@
 {
   "name": "pk-pay",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Unified TypeScript SDK for Pakistani payments — JazzCash, EasyPaisa, and Stripe in one API",
   "keywords": [
     "jazzcash",
