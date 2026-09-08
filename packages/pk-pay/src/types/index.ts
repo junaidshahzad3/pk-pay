@@ -122,7 +122,8 @@ export const JazzCashConfigSchema = z.object({
   password: z.string().min(1),
   integritySalt: z.string().min(1),
   version: z.string().default('2.0'),
-  environment: EnvironmentSchema.default('sandbox'),
+  /** Omit to inherit the top-level `environment`. */
+  environment: EnvironmentSchema.optional(),
 });
 export type JazzCashConfig = z.infer<typeof JazzCashConfigSchema>;
 
@@ -138,14 +139,16 @@ export const EasyPaisaConfigSchema = z.object({
   easypaisaPublicKey: z.string().optional(),
   username: z.string().min(1),
   password: z.string().min(1),
-  environment: EnvironmentSchema.default('sandbox'),
+  /** Omit to inherit the top-level `environment`. */
+  environment: EnvironmentSchema.optional(),
 });
 export type EasyPaisaConfig = z.infer<typeof EasyPaisaConfigSchema>;
 
 export const StripeConfigSchema = z.object({
   secretKey: z.string().startsWith('sk_'),
   webhookSecret: z.string().startsWith('whsec_').optional(),
-  environment: EnvironmentSchema.default('sandbox'),
+  /** Omit to inherit the top-level `environment`. */
+  environment: EnvironmentSchema.optional(),
 });
 export type StripeConfig = z.infer<typeof StripeConfigSchema>;
 

@@ -50,11 +50,15 @@ export function sanitizeRaw<T>(data: T, extraSensitiveKeys: string[] = []): T {
     return data.map((item) => sanitizeRaw(item, extraSensitiveKeys)) as unknown as T;
   }
 
-  const allSensitiveKeys = [...DEFAULT_SENSITIVE_KEYS, ...extraSensitiveKeys];
+  // Matched case-insensitively: gateways are inconsistent about casing and a
+  // callback carrying `Signature` or `Hash` must be redacted just the same.
+  const allSensitiveKeys = [...DEFAULT_SENSITIVE_KEYS, ...extraSensitiveKeys].map((k) =>
+    k.toLowerCase(),
+  );
   const sanitized = { ...data } as Record<string, unknown>;
 
   for (const key of Object.keys(sanitized)) {
-    if (allSensitiveKeys.includes(key)) {
+    if (allSensitiveKeys.includes(key.toLowerCase())) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof sanitized[key] === 'object') {
       sanitized[key] = sanitizeRaw(sanitized[key], extraSensitiveKeys);

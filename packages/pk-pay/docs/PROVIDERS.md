@@ -68,7 +68,7 @@ Uses a shared secret (`hashKey`) to sign requests.
 
 ---
 
-## 💳 Stripe (v2025-03-31)
+## 💳 Stripe (v2026-08-26.dahlia)
 
 Standard global payment processor. `pk-pay` uses **Stripe Checkout Sessions**.
 

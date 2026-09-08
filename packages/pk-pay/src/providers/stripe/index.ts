@@ -21,6 +21,18 @@ import {
 } from '../../types/index.js';
 import { sanitizeRaw } from '../../utils/crypto.js';
 
+/**
+ * Stripe API version this adapter is written against.
+ *
+ * Stripe pins breaking changes behind dated major releases (Basil → Dahlia →
+ * …). Bump this together with the `stripe` peer dependency range, and re-read
+ * the changelog at https://docs.stripe.com/changelog before you do.
+ */
+const STRIPE_API_VERSION = '2026-08-26.dahlia';
+
+/** Reported to Stripe in the user agent. Keep in step with package.json. */
+const SDK_VERSION = '0.4.0';
+
 // ─── Stripe Status Mapping ────────────────────────────────────────────────────
 
 const STRIPE_SESSION_STATUS_MAP: Record<string, PaymentResult['status']> = {
@@ -64,11 +76,13 @@ export class StripeAdapter implements ProviderAdapter {
       }
 
       this.stripeClient = new Stripe(this.config.secretKey, {
+        // `stripe` is an optional peer dependency loaded dynamically, so its
+        // types are not available at build time — hence the cast.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        apiVersion: '2025-03-31.basil' as any,
+        apiVersion: STRIPE_API_VERSION as any,
         appInfo: {
           name: 'pk-pay',
-          version: '0.1.0',
+          version: SDK_VERSION,
           url: 'https://github.com/junaidshahzad3/pk-pay',
         },
       });

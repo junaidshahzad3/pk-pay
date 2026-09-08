@@ -4,6 +4,8 @@
 
 One install. One API shape. Built for flexibility, security, and developer productivity.
 
+> **Try the signing lab:** [**pk-pay-signing-lab.vercel.app**](https://pk-pay-signing-lab.vercel.app) — no install, no keys.
+
 ---
 
 ## 🏗️ Repository Structure

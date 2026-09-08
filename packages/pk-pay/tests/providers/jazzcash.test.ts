@@ -60,8 +60,8 @@ describe('JazzCashAdapter', () => {
       // Verify sanitization
       expect((result.raw as any).pp_Password).toBe('[REDACTED]');
       
-      // Verify amount conversion (100_000 paisas -> 1000 rupees)
-      expect(result.redirectForm).toContain('name="pp_Amount" value="1000"');
+      // pp_Amount is paisa, passed through unchanged (100_000 = Rs 1,000.00)
+      expect(result.redirectForm).toContain('name="pp_Amount" value="100000"');
     });
 
     it('redirectForm contains a valid pp_SecureHash hidden input', async () => {
@@ -125,14 +125,24 @@ describe('JazzCashAdapter', () => {
       expect(result.redirectForm).not.toContain('value=""><script>');
     });
 
-    it('throws ValidationError for non-integer Rupee amounts', async () => {
-      const invalidRequest: PaymentRequest = {
-        ...BASE_REQUEST,
-        amount: 1050, // 10.50 PKR - not allowed for JazzCash REST API
-      };
-      await expect(
-        adapter.createPayment(invalidRequest, 'idem-invalid-amount'),
-      ).rejects.toThrow('JazzCash amount must be a whole Rupee');
+    it('supports amounts with paisa precision', async () => {
+      // Regression: the adapter used to reject anything that was not a whole
+      // Rupee, which made Rs 10.50 impossible to charge.
+      const result = await adapter.createPayment(
+        { ...BASE_REQUEST, amount: 1050 }, // Rs 10.50
+        'idem-sub-rupee',
+      );
+      expect(result.redirectForm).toContain('name="pp_Amount" value="1050"');
+      expect(result.amount).toBe(1050);
+    });
+
+    it('matches the amount format in the official JazzCash documentation', async () => {
+      // Their sandbox docs give: amount: '875045' for Rs 8,750.45
+      const result = await adapter.createPayment(
+        { ...BASE_REQUEST, amount: 875045 },
+        'idem-doc-example',
+      );
+      expect(result.redirectForm).toContain('name="pp_Amount" value="875045"');
     });
 
     it('throws ValidationError for non-PKR currencies', async () => {
@@ -150,7 +160,7 @@ describe('JazzCashAdapter', () => {
     function buildValidWebhookPayload(overrides: Record<string, string> = {}): Record<string, string> {
       const params: Record<string, string> = {
         pp_TxnRefNo: 'T1234567890',
-        pp_Amount: '1000', // 1000 rupees
+        pp_Amount: '100000', // paisa — Rs 1,000.00
         pp_ResponseCode: '000',
         pp_ResponseMessage: 'SUCCESS',
         pp_TxnDateTime: '20260316143000',
@@ -161,12 +171,12 @@ describe('JazzCashAdapter', () => {
     }
 
     it('returns a succeeded WebhookEvent for response code 000', async () => {
-      const payload = buildValidWebhookPayload({ pp_ResponseCode: '000', pp_Amount: '1000' });
+      const payload = buildValidWebhookPayload({ pp_ResponseCode: '000', pp_Amount: '100000' });
       const event = await adapter.verifyWebhook(payload);
       expect(event.provider).toBe('jazzcash');
       expect(event.status).toBe('succeeded');
       expect(event.transactionId).toBe('T1234567890');
-      expect(event.amount).toBe(100_000); // 1000 rupees -> 100_000 paisas
+      expect(event.amount).toBe(100_000); // paisa in, paisa out — no conversion
     });
 
     it('returns a failed WebhookEvent for response code 109', async () => {

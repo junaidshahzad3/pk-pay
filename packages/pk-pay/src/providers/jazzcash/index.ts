@@ -132,16 +132,12 @@ export class JazzCashAdapter implements ProviderAdapter {
     const txnExpiryDateTime = formatExpiry(now);
     const txnRefNo = idempotencyKey.replace(/-/g, '').slice(0, 20);
 
-    // JazzCash expects amount in whole units (Rupees), but we standardize on Paisas.
-    // Some versions of the REST API (especially redirection flow) strictly expect 
-    // no decimals. We enforce whole Rupees to prevent rounding losses.
-    if (request.amount % 100 !== 0) {
-      throw new ValidationError(
-        `JazzCash amount must be a whole Rupee (multiple of 100 paisas). Received: ${request.amount}.`,
-        'jazzcash',
-      );
-    }
-    const amountInRupees = request.amount / 100;
+    // pp_Amount is in the smallest currency unit (paisa) — the last two digits
+    // are the decimal places. JazzCash's own sandbox documentation gives
+    // `875045` for Rs 8,750.45, so the value passes through unchanged.
+    //
+    // This previously divided by 100 and rejected non-whole-Rupee amounts,
+    // which under-charged by 100x and made Rs 99.50 unrepresentable.
 
     const params: Record<string, string> = {
       pp_Version: this.config.version || '2.0',
@@ -150,7 +146,7 @@ export class JazzCashAdapter implements ProviderAdapter {
       pp_MerchantID: merchantId,
       pp_Password: password,
       pp_TxnRefNo: `T${txnRefNo}`,
-      pp_Amount: String(amountInRupees),
+      pp_Amount: String(request.amount),
       pp_TxnCurrency: request.currency,
       pp_TxnDateTime: txnDateTime,
       pp_BillReference: request.orderId ?? txnRefNo,
@@ -228,7 +224,8 @@ export class JazzCashAdapter implements ProviderAdapter {
       eventType: 'payment.callback',
       transactionId: (data['pp_TxnRefNo'] as string | undefined) ?? '',
       status,
-      amount: data['pp_Amount'] ? Number(data['pp_Amount'] as string) * 100 : undefined, // Convert back to paisas
+      // pp_Amount comes back in paisa, the same unit we sent.
+      amount: data['pp_Amount'] ? Number(data['pp_Amount'] as string) : undefined,
       currency: 'PKR',
       raw: sanitizeRaw(data),
     };

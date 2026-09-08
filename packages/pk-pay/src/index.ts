@@ -5,7 +5,7 @@
  * then `createPayment()` to process payments across JazzCash, EasyPaisa, and Stripe.
  *
  * Provider-specific constraints still apply:
- * - JazzCash requires whole-rupee PKR amounts and a customer phone number
+ * - JazzCash requires PKR and a customer phone number
  * - EasyPaisa requires a customer phone number
  * - Stripe requires a Stripe-supported currency (not PKR)
  *
@@ -78,7 +78,12 @@ export {
 } from './types/index.js';
 
 export { withRetry } from './utils/retry.js';
-export { generateIdempotencyKey, resolveIdempotencyKey } from './utils/idempotency.js';
+export {
+  generateIdempotencyKey,
+  resolveIdempotencyKey,
+  validateIdempotencyKey,
+  getIdempotencyHeader,
+} from './utils/idempotency.js';
 
 // ─── Provider Registry ────────────────────────────────────────────────────────
 /**
@@ -87,6 +92,13 @@ export { generateIdempotencyKey, resolveIdempotencyKey } from './utils/idempoten
 export type AdapterConstructor = new (config: any) => ProviderAdapter;
 
 const providerRegistry = new Map<Provider, AdapterConstructor>();
+
+// ─── Singleton State ──────────────────────────────────────────────────────────
+// Declared before registerProvider because the default registrations below call
+// it at module load, and it touches adapterCache.
+
+let globalConfig: PkPayConfigResolved | null = null;
+const adapterCache = new Map<Provider, ProviderAdapter>();
 
 /**
  * Register a new payment provider adapter.
@@ -97,6 +109,9 @@ export function registerProvider(
   adapter: AdapterConstructor,
 ): void {
   providerRegistry.set(name, adapter);
+  // Drop any adapter already built from the previous constructor, otherwise the
+  // global cache keeps serving the implementation this call just replaced.
+  adapterCache.delete(name);
 }
 
 // Register default providers
@@ -104,10 +119,6 @@ registerProvider(PROVIDERS.JAZZCASH, JazzCashAdapter as unknown as AdapterConstr
 registerProvider(PROVIDERS.EASYPAISA, EasyPaisaAdapter as unknown as AdapterConstructor);
 registerProvider(PROVIDERS.STRIPE, StripeAdapter as unknown as AdapterConstructor);
 
-// ─── Singleton State ──────────────────────────────────────────────────────────
-
-let globalConfig: PkPayConfigResolved | null = null;
-const adapterCache = new Map<Provider, ProviderAdapter>();
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
