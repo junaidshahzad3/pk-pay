@@ -35,9 +35,30 @@ One install. One API shape. Built for flexibility, security, and developer produ
 
 ---
 
+## ✅ Verification status
+
+Every adapter implements its gateway's published specification and is covered by
+unit tests, including signature generation and rejection of tampered webhooks.
+
+**None have been exercised against live merchant credentials.** JazzCash and
+EasyPaisa both require Pakistani merchant onboarding, and Stripe does not
+operate in Pakistan. Treat the adapters as spec-complete rather than
+production-proven, and run your own sandbox transaction before going live.
+
+| Provider | Written against | Live-verified |
+|---|---|---|
+| JazzCash | HTTP POST v2.0 (sandbox docs) | Not yet |
+| EasyPaisa | Merchant Integration Guide — Legacy HMAC + REST RSA | Not yet |
+| Stripe | API `2026-08-26.dahlia` | Not yet |
+
+---
+
 ## 🚀 Quick Start
 
-> **Wanna see it live?** Check out the [Interactive Playground](../../apps/playground) to test the SDK with your own API keys.
+> **See it work before you install it:** [**Payment Signing Lab →**](https://pk-pay-signing-lab.vercel.app)
+> Watch a request get signed, then tamper with a callback and see verification reject it. Real HMAC-SHA256, no keys, no gateway contacted.
+>
+> Already have credentials? The [Interactive Playground](../../apps/playground) tests the SDK against your own API keys.
 
 ## 🛠️ Installation
 ```bash
@@ -79,11 +100,12 @@ configure({
 import { createPayment } from 'pk-pay';
 
 const payment = await createPayment({
-  provider: 'stripe',
-  amount: 2500,         // $25.00 in cents
-  currency: 'USD',      // Stripe supports 135+ currencies
-  description: 'International SaaS Pro Plan',
+  provider: 'jazzcash',
+  amount: 250000,       // always the smallest unit — 250000 paisa = Rs 2,500.00
+  currency: 'PKR',
+  description: 'Pro Plan',
   returnUrl: 'https://yourapp.com/payment/callback',
+  customerPhone: '03001234567',
 });
 
 // Securely redirect:
@@ -125,7 +147,7 @@ export const POST = createNextWebhookHandler('stripe');
 For detailed guides, architecture, and security practices, see the nested documentation:
 
 ### 📱 [Provider Setup Guide](docs/PROVIDERS.md)
-Detailed configuration for **JazzCash (v2.0)**, **EasyPaisa (Legacy/REST RSA)**, and **Stripe (Basil)**.
+Detailed configuration for **JazzCash (v2.0)**, **EasyPaisa (Legacy/REST RSA)**, and **Stripe (Dahlia)**.
 
 ### 🏗️ [Architecture & Code Standards](docs/CODE_STANDARDS.md)
 Deep dive into the **Adapter Pattern**, **Timing-Safe Sanitization**, and **Security Hardening**.

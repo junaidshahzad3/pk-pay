@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-08
+
+### Changed — BREAKING (JazzCash amounts)
+
+**JazzCash `pp_Amount` is now sent in paisa, unchanged, instead of being divided by 100.**
+
+Earlier versions converted the amount to whole Rupees before sending it, so a
+request for `250000` (Rs 2,500.00) was submitted to JazzCash as `2500` — a charge
+of Rs 25.00. JazzCash documents `pp_Amount` in the smallest currency unit: their
+own sandbox example passes `875045` for Rs 8,750.45.
+
+If you were compensating for this by multiplying your amounts by 100 before
+calling `createPayment`, **remove that workaround before upgrading.**
+
+The webhook path is corrected to match: `pp_Amount` on an incoming callback is no
+longer multiplied by 100 on the way back, so a genuine Rs 25 payment is no longer
+reported to your application as Rs 2,500.
+
+The `amount % 100 !== 0` guard is gone. Amounts with paisa precision — Rs 99.50 —
+are now representable.
+
+> Not yet exercised against live merchant credentials. See "Verification status"
+> in the README.
+
+### Fixed
+- **Secrets escaped redaction when the gateway varied the casing.** `sanitizeRaw`
+  matched keys case-sensitively, so a callback carrying `Signature` or `HASH` was
+  returned in the clear inside `raw`.
+- **Idempotency keys were never validated.** `validateIdempotencyKey` existed but
+  was never called or exported, so an unchecked key flowed into `pp_TxnRefNo`.
+  Keys containing `&` are now rejected: gateway signatures join field values on
+  that character, so an embedded `&` lets two different field sets hash alike.
+- **`registerProvider` did not invalidate the adapter cache**, so re-registering a
+  provider kept serving the previous constructor.
+- **Top-level `environment` was silently ignored.** Each provider schema defaulted
+  `environment` to `'sandbox'`, so the `?? config.environment` fallback was dead
+  code — a config declaring `environment: 'production'` still produced sandbox
+  URLs. Provider-level `environment` is now optional and inherits properly.
+
+### Changed
+- Stripe API version pinned to `2026-08-26.dahlia` (was `2025-03-31.basil`); the
+  `stripe` peer dependency range moves to `^22.0.0` (was `^17.0.0`).
+- The version reported to Stripe in `appInfo` now tracks `package.json`; it had
+  drifted to `0.1.0`.
+
+### Added
+- Verification-status section in the README stating which adapters have been
+  validated against live credentials (none, and why).
+- Test suite grown from 105 to 160, covering the EasyPaisa REST/RSA method (which
+  previously had no coverage at all), webhook middleware failure paths, adapter
+  registry errors, secret redaction, and signing invariants.
+
 ## [0.2.0] - 2026-04-03
 
 ### Added

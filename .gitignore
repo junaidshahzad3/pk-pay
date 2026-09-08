@@ -42,3 +42,4 @@ Thumbs.db
 
 # --- Tests ---
 .vitest-results.json
+.vercel
